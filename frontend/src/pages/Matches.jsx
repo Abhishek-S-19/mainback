@@ -1,17 +1,28 @@
 import { useState, useEffect } from 'react';
 import {
-  Box,
+  Container,
+  Typography,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   Button,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
-  Typography,
-  MenuItem,
+  Box,
+  IconButton,
+  Chip,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
-import { toast } from 'react-toastify';
-import DataTable from '../components/DataTable';
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 
 const Matches = () => {
@@ -20,47 +31,18 @@ const Matches = () => {
   const [open, setOpen] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState(null);
   const [formData, setFormData] = useState({
-    team1: '',
-    team2: '',
     date: '',
+    time: '',
     venue: '',
+    homeTeam: '',
+    awayTeam: '',
     status: 'Scheduled',
-    umpires: [''],
-    result: {
-      team1Score: {
-        runs: 0,
-        wickets: 0,
-        overs: 0
-      },
-      team2Score: {
-        runs: 0,
-        wickets: 0,
-        overs: 0
-      }
-    }
+    homeTeamScore: 0,
+    awayTeamScore: 0
   });
-
-  const columns = [
-    { 
-      id: 'team1', 
-      label: 'Team 1',
-      render: (row) => row.team1?.name || 'Unknown'
-    },
-    { 
-      id: 'team2', 
-      label: 'Team 2',
-      render: (row) => row.team2?.name || 'Unknown'
-    },
-    { 
-      id: 'date', 
-      label: 'Date',
-      render: (row) => new Date(row.date).toLocaleDateString()
-    },
-    { id: 'venue', label: 'Venue' },
-    { id: 'status', label: 'Status' },
-  ];
-
-  const statuses = ['Scheduled', 'In Progress', 'Completed', 'Cancelled'];
+  const { user } = useAuth();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     fetchMatches();
@@ -72,7 +54,7 @@ const Matches = () => {
       const response = await api.get('/matches');
       setMatches(response.data);
     } catch (error) {
-      toast.error('Failed to fetch matches');
+      console.error('Error fetching matches:', error);
     }
   };
 
@@ -81,7 +63,7 @@ const Matches = () => {
       const response = await api.get('/teams');
       setTeams(response.data);
     } catch (error) {
-      toast.error('Failed to fetch teams');
+      console.error('Error fetching teams:', error);
     }
   };
 
@@ -89,46 +71,26 @@ const Matches = () => {
     if (match) {
       setSelectedMatch(match);
       setFormData({
-        team1: match.team1?._id || '',
-        team2: match.team2?._id || '',
-        date: new Date(match.date).toISOString().split('T')[0],
+        date: match.date,
+        time: match.time,
         venue: match.venue,
+        homeTeam: match.homeTeam?._id || '',
+        awayTeam: match.awayTeam?._id || '',
         status: match.status,
-        umpires: match.umpires || [''],
-        result: match.result || {
-          team1Score: {
-            runs: 0,
-            wickets: 0,
-            overs: 0
-          },
-          team2Score: {
-            runs: 0,
-            wickets: 0,
-            overs: 0
-          }
-        }
+        homeTeamScore: match.homeTeamScore || 0,
+        awayTeamScore: match.awayTeamScore || 0
       });
     } else {
       setSelectedMatch(null);
       setFormData({
-        team1: '',
-        team2: '',
         date: '',
+        time: '',
         venue: '',
+        homeTeam: '',
+        awayTeam: '',
         status: 'Scheduled',
-        umpires: [''],
-        result: {
-          team1Score: {
-            runs: 0,
-            wickets: 0,
-            overs: 0
-          },
-          team2Score: {
-            runs: 0,
-            wickets: 0,
-            overs: 0
-          }
-        }
+        homeTeamScore: 0,
+        awayTeamScore: 0
       });
     }
     setOpen(true);
@@ -137,166 +99,211 @@ const Matches = () => {
   const handleClose = () => {
     setOpen(false);
     setSelectedMatch(null);
-    setFormData({
-      team1: '',
-      team2: '',
-      date: '',
-      venue: '',
-      status: 'Scheduled',
-      umpires: [''],
-      result: {
-        team1Score: {
-          runs: 0,
-          wickets: 0,
-          overs: 0
-        },
-        team2Score: {
-          runs: 0,
-          wickets: 0,
-          overs: 0
-        }
-      }
-    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const submitData = {
-        ...formData,
-        date: new Date(formData.date).toISOString()
-      };
-
       if (selectedMatch) {
-        await api.put(`/matches/${selectedMatch._id}`, submitData);
-        toast.success('Match updated successfully');
+        await api.put(`/matches/${selectedMatch._id}`, formData);
       } else {
-        await api.post('/matches', submitData);
-        toast.success('Match created successfully');
+        await api.post('/matches', formData);
       }
-      handleClose();
       fetchMatches();
+      handleClose();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to save match');
+      console.error('Error saving match:', error);
     }
   };
 
   const handleDelete = async (id) => {
-    try {
-      await api.delete(`/matches/${id}`);
-      toast.success('Match deleted successfully');
-      fetchMatches();
-    } catch (error) {
-      toast.error('Failed to delete match');
+    if (window.confirm('Are you sure you want to delete this match?')) {
+      try {
+        await api.delete(`/matches/${id}`);
+        fetchMatches();
+      } catch (error) {
+        console.error('Error deleting match:', error);
+      }
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Completed':
+        return 'success';
+      case 'In Progress':
+        return 'warning';
+      case 'Scheduled':
+        return 'primary';
+      default:
+        return 'default';
     }
   };
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h4">Matches</Typography>
-        <Button variant="contained" onClick={() => handleOpen()}>
-          Add Match
-        </Button>
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" component="h1">
+          Matches
+        </Typography>
+        {user.role === 'admin' && (
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={() => handleOpen()}
+          >
+            Add Match
+          </Button>
+        )}
       </Box>
 
-      <DataTable
-        columns={columns}
-        data={matches}
-        onEdit={handleOpen}
-        onDelete={handleDelete}
-      />
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Date</TableCell>
+              <TableCell>Time</TableCell>
+              <TableCell>Teams</TableCell>
+              <TableCell>Venue</TableCell>
+              <TableCell>Score</TableCell>
+              <TableCell>Status</TableCell>
+              {user.role === 'admin' && <TableCell>Actions</TableCell>}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {matches.map((match) => (
+              <TableRow key={match._id}>
+                <TableCell>{new Date(match.date).toLocaleDateString()}</TableCell>
+                <TableCell>{match.time}</TableCell>
+                <TableCell>
+                  {match.homeTeam?.name} vs {match.awayTeam?.name}
+                </TableCell>
+                <TableCell>{match.venue}</TableCell>
+                <TableCell>
+                  {match.homeTeamScore} - {match.awayTeamScore}
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    label={match.status}
+                    color={getStatusColor(match.status)}
+                    size="small"
+                  />
+                </TableCell>
+                {user.role === 'admin' && (
+                  <TableCell>
+                    <IconButton onClick={() => handleOpen(match)} color="primary">
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton onClick={() => handleDelete(match._id)} color="error">
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                )}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>
-          {selectedMatch ? 'Edit Match' : 'Add New Match'}
-        </DialogTitle>
-        <DialogContent>
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-            <TextField
-              select
-              fullWidth
-              label="Team 1"
-              value={formData.team1}
-              onChange={(e) => setFormData({ ...formData, team1: e.target.value })}
-              margin="normal"
-              required
-            >
-              {teams.map((team) => (
-                <MenuItem key={team._id} value={team._id}>
-                  {team.name}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
-              fullWidth
-              label="Team 2"
-              value={formData.team2}
-              onChange={(e) => setFormData({ ...formData, team2: e.target.value })}
-              margin="normal"
-              required
-            >
-              {teams.map((team) => (
-                <MenuItem key={team._id} value={team._id}>
-                  {team.name}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              fullWidth
-              label="Date"
-              type="date"
-              value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              margin="normal"
-              required
-              InputLabelProps={{ shrink: true }}
-            />
-            <TextField
-              fullWidth
-              label="Venue"
-              value={formData.venue}
-              onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
-              margin="normal"
-              required
-            />
-            <TextField
-              select
-              fullWidth
-              label="Status"
-              value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-              margin="normal"
-              required
-            >
-              {statuses.map((status) => (
-                <MenuItem key={status} value={status}>
-                  {status}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              fullWidth
-              label="Umpire"
-              value={formData.umpires[0]}
-              onChange={(e) => setFormData({ 
-                ...formData, 
-                umpires: [e.target.value]
-              })}
-              margin="normal"
-              required
-            />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained">
-            {selectedMatch ? 'Update' : 'Create'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+      {user.role === 'admin' && (
+        <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+          <DialogTitle>{selectedMatch ? 'Edit Match' : 'Add New Match'}</DialogTitle>
+          <DialogContent>
+            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+              <TextField
+                fullWidth
+                label="Date"
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                margin="normal"
+                required
+                InputLabelProps={{ shrink: true }}
+              />
+              <TextField
+                fullWidth
+                label="Time"
+                type="time"
+                value={formData.time}
+                onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                margin="normal"
+                required
+                InputLabelProps={{ shrink: true }}
+              />
+              <TextField
+                fullWidth
+                label="Venue"
+                value={formData.venue}
+                onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
+                margin="normal"
+                required
+              />
+              <TextField
+                fullWidth
+                select
+                label="Home Team"
+                value={formData.homeTeam}
+                onChange={(e) => setFormData({ ...formData, homeTeam: e.target.value })}
+                margin="normal"
+                required
+                SelectProps={{
+                  native: true,
+                }}
+              >
+                <option value="">Select Home Team</option>
+                {teams.map((team) => (
+                  <option key={team._id} value={team._id}>
+                    {team.name}
+                  </option>
+                ))}
+              </TextField>
+              <TextField
+                fullWidth
+                select
+                label="Away Team"
+                value={formData.awayTeam}
+                onChange={(e) => setFormData({ ...formData, awayTeam: e.target.value })}
+                margin="normal"
+                required
+                SelectProps={{
+                  native: true,
+                }}
+              >
+                <option value="">Select Away Team</option>
+                {teams.map((team) => (
+                  <option key={team._id} value={team._id}>
+                    {team.name}
+                  </option>
+                ))}
+              </TextField>
+              <TextField
+                fullWidth
+                label="Home Team Score"
+                type="number"
+                value={formData.homeTeamScore}
+                onChange={(e) => setFormData({ ...formData, homeTeamScore: e.target.value })}
+                margin="normal"
+              />
+              <TextField
+                fullWidth
+                label="Away Team Score"
+                type="number"
+                value={formData.awayTeamScore}
+                onChange={(e) => setFormData({ ...formData, awayTeamScore: e.target.value })}
+                margin="normal"
+              />
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClose}>Cancel</Button>
+            <Button onClick={handleSubmit} variant="contained" color="primary">
+              {selectedMatch ? 'Update' : 'Add'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
+    </Container>
   );
 };
 

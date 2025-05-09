@@ -1,0 +1,324 @@
+.inning {
+  background: #3f51b5;
+  color: white;
+  padding: 0.5rem;
+  font-size: 1.2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#end-inning {
+  height: 100%;
+  padding: 4px;
+  outline: none;
+  border: 1px solid #fff;
+  border-radius: 4px;
+  background: transparent;
+  color: white;
+  cursor: pointer;
+}
+
+#end-inning:active {
+  color: #fff;
+  background-color: #3f51b5;
+}
+
+.score-container {
+  margin: 0.5rem;
+}
+
+.run-out-player {
+  height: 2rem;
+  max-width: 9.3rem;
+}
+
+.run-out-player-error {
+  color: #ff0000;
+  font-size: 0.7rem;
+  text-align: right;
+  padding-right: 0rem;
+}
+
+.hide {
+  display: none;
+}
+
+.badge {
+  background: #ffff4d;
+  color: #000000;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 8px;
+  margin-bottom: 8px;
+}
+
+.badge-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.score {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.05rem;
+  font-weight: bold;
+  padding: 4px;
+}
+
+.batting-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 0.8rem 0;
+}
+
+.batting-container table {
+  width: 100%;
+  border: none;
+  border-spacing: unset;
+}
+
+table thead {
+  padding: 8px;
+  background-color: #3f51b517;
+}
+
+.batting-container table td {
+  padding: 8px 4px;
+}
+
+.bowler {
+  display: flex;
+  align-items: center;
+  background-color: #3f51b517;
+  padding: 8px;
+}
+
+.bowler-name {
+  max-width: 6.5rem;
+  margin: 0 8px;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.bowler-runs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+}
+
+.score-types-container table {
+  width: 100%;
+  height: 100%;
+  border-spacing: 8px;
+}
+
+.score-types-container table .score-types {
+  background: #3f51b517;
+}
+
+.score-types-container table td {
+  border: 1px solid #3f51b5;
+}
+
+.score-types-button {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  outline: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.score-types-button:active {
+  color: white;
+  background-color: #3f51b5;
+}
+
+.score-types-button-noball {
+  color: #000;
+  background-color: #ffff4d;
+}
+
+.icon-button {
+  padding: 0 4px !important;
+}
+
+.icon-size {
+  font-size: 1rem !important;
+}
+
+.delete-icon-size {
+  font-size: 1.3rem !important;
+}
+
+.strike-icon-button {
+  padding: 0 !important;
+}
+
+.batter-name {
+  max-width: 6.5rem;
+  margin: 0 8px;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.extras-container {
+  margin: 0.8rem 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+  background: #3f51b517;
+}
+
+.recent-over-container {
+  margin: 0.8rem 0;
+}
+
+.recent-over-text {
+  background-color: #3f51b517;
+  padding: 8px;
+}
+
+.recent-over-details table {
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+.recent-over-runs {
+  display: flex;
+  justify-content: space-around;
+  gap: 4px;
+  padding: 8px;
+}
+
+.recent-over-total-run {
+  text-align: center;
+  border-left: 1px solid #ccc;
+  font-weight: bold;
+  padding: 0 2px;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.score-board-container {
+  margin: 0.8rem 0;
+}
+
+.score-board-innings {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 4px;
+  color: #fff;
+  background: #737373;
+  font-size: 0.95rem;
+}
+
+.score-board-text {
+  color: #fff;
+  background: #404040;
+  padding: 8px;
+}
+
+.sb-batting {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.sb-batting table {
+  width: 100%;
+  border: none;
+  border-spacing: unset;
+}
+
+.sb-batting table thead {
+  font-size: 0.9rem;
+}
+
+.sb-batting table tbody {
+  font-size: 0.85rem;
+}
+
+.sb-batting table td {
+  padding: 8px 4px;
+}
+
+.score-board-extras {
+  margin: 0.8rem 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 4px;
+  font-size: 0.85rem;
+  background: #3f51b517;
+}
+
+.sb-bowling {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.sb-bowling table {
+  width: 100%;
+  border: none;
+  border-spacing: unset;
+}
+
+.sb-bowling table thead {
+  font-size: 0.9rem;
+}
+
+.sb-bowling table tbody {
+  font-size: 0.85rem;
+}
+
+.sb-bowling table td {
+  padding: 8px 4px;
+}
+
+.padding-left {
+  padding-left: 8px !important;
+}
+
+.score-types {
+  font-size: 0.9rem;
+}
+
+/* Material-UI overrides */
+.MuiRadio-root {
+  padding: 0 4px !important;
+}
+
+.MuiIconButton-root {
+  padding: 4px !important;
+}
+
+.MuiDialog-paper {
+  min-width: 300px;
+}
+
+.MuiFormControl-root {
+  width: 100%;
+}
+
+.MuiRadioGroup-root {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.MuiFormControlLabel-root {
+  margin: 0;
+} 

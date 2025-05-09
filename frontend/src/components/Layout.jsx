@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import {
   AppBar,
   Box,
@@ -14,75 +14,126 @@ import {
   Typography,
   useTheme,
   useMediaQuery,
+  Button
 } from '@mui/material';
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
-  Group as GroupIcon,
-  Person as PersonIcon,
-  SportsSoccer as MatchIcon,
+  People as PeopleIcon,
+  SportsCricket as CricketIcon,
+  EmojiEvents as TrophyIcon,
   Score as ScoreIcon,
-  School as TrainerIcon,
-  Logout as LogoutIcon,
+  FitnessCenter as TrainerIcon,
+  Logout as LogoutIcon
 } from '@mui/icons-material';
+import { useAuth } from '../context/AuthContext';
 
 const drawerWidth = 240;
 
-const menuItems = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-  { text: 'Teams', icon: <GroupIcon />, path: '/teams' },
-  { text: 'Players', icon: <PersonIcon />, path: '/players' },
-  { text: 'Matches', icon: <MatchIcon />, path: '/matches' },
-  { text: 'Scores', icon: <ScoreIcon />, path: '/scores' },
-  { text: 'Trainers', icon: <TrainerIcon />, path: '/trainers' },
-];
-
-function Layout() {
+const Layout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Redirect user role to their dashboard if they're at the root dashboard
+    if (user?.role === 'user' && location.pathname === '/dashboard') {
+      navigate('/dashboard/user');
+    }
+  }, [user, location.pathname, navigate]);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  const handleNavigation = (path) => {
-    navigate(path);
-    if (isMobile) {
-      setMobileOpen(false);
-    }
-  };
-
   const handleLogout = () => {
-    // Add logout logic here
+    logout();
     navigate('/login');
   };
 
+  const menuItems = [
+    {
+      text: 'Dashboard',
+      icon: <DashboardIcon />,
+      path: '/dashboard',
+      roles: ['admin', 'player']
+    },
+    {
+      text: 'User Dashboard',
+      icon: <DashboardIcon />,
+      path: '/dashboard/user',
+      roles: ['user']
+    },
+    {
+      text: 'Teams',
+      icon: <PeopleIcon />,
+      path: '/dashboard/teams',
+      roles: ['admin']
+    },
+    {
+      text: 'Players',
+      icon: <CricketIcon />,
+      path: '/dashboard/players',
+      roles: ['admin', 'user']
+    },
+    {
+      text: 'Matches',
+      icon: <TrophyIcon />,
+      path: '/dashboard/matches',
+      roles: ['admin', 'player', 'user']
+    },
+    {
+      text: 'Scores',
+      icon: <ScoreIcon />,
+      path: '/dashboard/scores',
+      roles: ['admin', 'player', 'user']
+    },
+    {
+      text: 'Trainers',
+      icon: <TrainerIcon />,
+      path: '/dashboard/trainers',
+      roles: ['admin']
+    }
+  ];
+
   const drawer = (
     <div>
-      <Toolbar>
-        <Typography variant="h6" noWrap component="div">
-          Sports Management
-        </Typography>
-      </Toolbar>
+      <Toolbar />
       <List>
-        {menuItems.map((item) => (
-          <ListItem
-            button
-            key={item.text}
-            onClick={() => handleNavigation(item.path)}
-          >
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.text} />
-          </ListItem>
-        ))}
-        <ListItem button onClick={handleLogout}>
-          <ListItemIcon>
-            <LogoutIcon />
-          </ListItemIcon>
-          <ListItemText primary="Logout" />
-        </ListItem>
+        {menuItems.map((item) => {
+          // Show all items for admin
+          if (user.role === 'admin') {
+            return (
+              <ListItem
+                button
+                key={item.text}
+                onClick={() => navigate(item.path)}
+                selected={location.pathname === item.path}
+              >
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItem>
+            );
+          }
+          // For non-admin users, only show items for their role
+          if (item.roles.includes(user.role)) {
+            return (
+              <ListItem
+                button
+                key={item.text}
+                onClick={() => navigate(item.path)}
+                selected={location.pathname === item.path}
+              >
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItem>
+            );
+          }
+          return null;
+        })}
       </List>
     </div>
   );
@@ -107,9 +158,12 @@ function Layout() {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div">
-            Sports Management System
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+            Cricket Management System - {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
           </Typography>
+          <Button color="inherit" onClick={handleLogout} startIcon={<LogoutIcon />}>
+            Logout
+          </Button>
         </Toolbar>
       </AppBar>
       <Box
@@ -121,7 +175,7 @@ function Layout() {
           open={mobileOpen}
           onClose={handleDrawerToggle}
           ModalProps={{
-            keepMounted: true,
+            keepMounted: true, // Better open performance on mobile.
           }}
           sx={{
             '& .MuiDrawer-paper': {
@@ -146,6 +200,6 @@ function Layout() {
       </Box>
     </Box>
   );
-}
+};
 
 export default Layout; 

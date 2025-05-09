@@ -1,17 +1,26 @@
 import { useState, useEffect } from 'react';
 import {
-  Box,
+  Container,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  CardActions,
   Button,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
-  Typography,
-  MenuItem,
+  Box,
+  IconButton,
+  Avatar,
+  Chip,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
-import { toast } from 'react-toastify';
-import DataTable from '../components/DataTable';
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, SportsCricket as CricketIcon } from '@mui/icons-material';
+import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 
 const Players = () => {
@@ -21,43 +30,24 @@ const Players = () => {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
-    age: '',
-    role: '',
+    email: '',
+    phone: '',
     team: '',
-    battingStyle: '',
-    bowlingStyle: '',
-    stats: {
-      matches: 0,
-      runs: 0,
-      wickets: 0,
-      catches: 0,
-      stumpings: 0
+    role: 'player',
+    profile: {
+      age: '',
+      battingStyle: '',
+      bowlingStyle: '',
+      stats: {
+        runs: 0,
+        wickets: 0,
+        matches: 0
+      }
     }
   });
-
-  const columns = [
-    { id: 'name', label: 'Name' },
-    { id: 'age', label: 'Age' },
-    { id: 'role', label: 'Role' },
-    { 
-      id: 'team', 
-      label: 'Team',
-      render: (row) => row.team?.name || 'No team assigned'
-    },
-    { id: 'battingStyle', label: 'Batting Style' },
-    { id: 'bowlingStyle', label: 'Bowling Style' },
-  ];
-
-  const roles = ['Batsman', 'Bowler', 'All-rounder', 'Wicket-keeper'];
-  const battingStyles = ['Right-handed', 'Left-handed'];
-  const bowlingStyles = [
-    'Right-arm fast',
-    'Right-arm medium',
-    'Right-arm spin',
-    'Left-arm fast',
-    'Left-arm medium',
-    'Left-arm spin'
-  ];
+  const { user } = useAuth();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     fetchPlayers();
@@ -69,7 +59,7 @@ const Players = () => {
       const response = await api.get('/players');
       setPlayers(response.data);
     } catch (error) {
-      toast.error('Failed to fetch players');
+      console.error('Error fetching players:', error);
     }
   };
 
@@ -78,7 +68,7 @@ const Players = () => {
       const response = await api.get('/teams');
       setTeams(response.data);
     } catch (error) {
-      toast.error('Failed to fetch teams');
+      console.error('Error fetching teams:', error);
     }
   };
 
@@ -87,34 +77,38 @@ const Players = () => {
       setSelectedPlayer(player);
       setFormData({
         name: player.name,
-        age: player.age,
-        role: player.role,
+        email: player.email,
+        phone: player.phone,
         team: player.team?._id || '',
-        battingStyle: player.battingStyle || '',
-        bowlingStyle: player.bowlingStyle || '',
-        stats: player.stats || {
-          matches: 0,
-          runs: 0,
-          wickets: 0,
-          catches: 0,
-          stumpings: 0
+        role: player.role,
+        profile: {
+          age: player.profile?.age || '',
+          battingStyle: player.profile?.battingStyle || '',
+          bowlingStyle: player.profile?.bowlingStyle || '',
+          stats: {
+            runs: player.profile?.stats?.runs || 0,
+            wickets: player.profile?.stats?.wickets || 0,
+            matches: player.profile?.stats?.matches || 0
+          }
         }
       });
     } else {
       setSelectedPlayer(null);
       setFormData({
         name: '',
-        age: '',
-        role: '',
+        email: '',
+        phone: '',
         team: '',
-        battingStyle: '',
-        bowlingStyle: '',
-        stats: {
-          matches: 0,
-          runs: 0,
-          wickets: 0,
-          catches: 0,
-          stumpings: 0
+        role: 'player',
+        profile: {
+          age: '',
+          battingStyle: '',
+          bowlingStyle: '',
+          stats: {
+            runs: 0,
+            wickets: 0,
+            matches: 0
+          }
         }
       });
     }
@@ -124,162 +118,234 @@ const Players = () => {
   const handleClose = () => {
     setOpen(false);
     setSelectedPlayer(null);
-    setFormData({
-      name: '',
-      age: '',
-      role: '',
-      team: '',
-      battingStyle: '',
-      bowlingStyle: '',
-      stats: {
-        matches: 0,
-        runs: 0,
-        wickets: 0,
-        catches: 0,
-        stumpings: 0
-      }
-    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const submitData = {
-        ...formData,
-        age: Number(formData.age)
-      };
-
       if (selectedPlayer) {
-        await api.put(`/players/${selectedPlayer._id}`, submitData);
-        toast.success('Player updated successfully');
+        await api.put(`/players/${selectedPlayer._id}`, formData);
       } else {
-        await api.post('/players', submitData);
-        toast.success('Player created successfully');
+        await api.post('/players', formData);
       }
-      handleClose();
       fetchPlayers();
+      handleClose();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to save player');
+      console.error('Error saving player:', error);
     }
   };
 
   const handleDelete = async (id) => {
-    try {
-      await api.delete(`/players/${id}`);
-      toast.success('Player deleted successfully');
-      fetchPlayers();
-    } catch (error) {
-      toast.error('Failed to delete player');
+    if (window.confirm('Are you sure you want to delete this player?')) {
+      try {
+        await api.delete(`/players/${id}`);
+        fetchPlayers();
+      } catch (error) {
+        console.error('Error deleting player:', error);
+      }
     }
   };
 
+  const getInitials = (name) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase();
+  };
+
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h4">Players</Typography>
-        <Button variant="contained" onClick={() => handleOpen()}>
-          Add Player
-        </Button>
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" component="h1">
+          Players
+        </Typography>
+        {user.role === 'admin' && (
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={() => handleOpen()}
+          >
+            Add Player
+          </Button>
+        )}
       </Box>
 
-      <DataTable
-        columns={columns}
-        data={players}
-        onEdit={handleOpen}
-        onDelete={handleDelete}
-      />
+      <Grid container spacing={3}>
+        {players.map((player) => (
+          <Grid item xs={12} sm={6} md={4} key={player._id}>
+            <Card>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Avatar
+                    sx={{
+                      bgcolor: theme.palette.primary.main,
+                      width: 56,
+                      height: 56,
+                      mr: 2
+                    }}
+                  >
+                    {getInitials(player.name)}
+                  </Avatar>
+                  <Box>
+                    <Typography variant="h6" component="div">
+                      {player.name}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {player.team?.name || 'Not Assigned'}
+                    </Typography>
+                  </Box>
+                </Box>
 
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>
-          {selectedPlayer ? 'Edit Player' : 'Add New Player'}
-        </DialogTitle>
-        <DialogContent>
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-            <TextField
-              fullWidth
-              label="Name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              margin="normal"
-              required
-            />
-            <TextField
-              fullWidth
-              label="Age"
-              type="number"
-              value={formData.age}
-              onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-              margin="normal"
-              required
-            />
-            <TextField
-              select
-              fullWidth
-              label="Role"
-              value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-              margin="normal"
-              required
-            >
-              {roles.map((role) => (
-                <MenuItem key={role} value={role}>
-                  {role}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
-              fullWidth
-              label="Team"
-              value={formData.team}
-              onChange={(e) => setFormData({ ...formData, team: e.target.value })}
-              margin="normal"
-              required
-            >
-              {teams.map((team) => (
-                <MenuItem key={team._id} value={team._id}>
-                  {team.name}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
-              fullWidth
-              label="Batting Style"
-              value={formData.battingStyle}
-              onChange={(e) => setFormData({ ...formData, battingStyle: e.target.value })}
-              margin="normal"
-            >
-              {battingStyles.map((style) => (
-                <MenuItem key={style} value={style}>
-                  {style}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
-              fullWidth
-              label="Bowling Style"
-              value={formData.bowlingStyle}
-              onChange={(e) => setFormData({ ...formData, bowlingStyle: e.target.value })}
-              margin="normal"
-            >
-              {bowlingStyles.map((style) => (
-                <MenuItem key={style} value={style}>
-                  {style}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained">
-            {selectedPlayer ? 'Update' : 'Create'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Age: {player.profile?.age || '-'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Batting Style: {player.profile?.battingStyle || '-'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Bowling Style: {player.profile?.bowlingStyle || '-'}
+                  </Typography>
+                </Box>
+
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Statistics
+                  </Typography>
+                  <Grid container spacing={1}>
+                    <Grid item xs={4}>
+                      <Chip
+                        label={`${player.profile?.stats?.runs || 0} Runs`}
+                        size="small"
+                        color="primary"
+                        variant="outlined"
+                      />
+                    </Grid>
+                    <Grid item xs={4}>
+                      <Chip
+                        label={`${player.profile?.stats?.wickets || 0} Wickets`}
+                        size="small"
+                        color="secondary"
+                        variant="outlined"
+                      />
+                    </Grid>
+                    <Grid item xs={4}>
+                      <Chip
+                        label={`${player.profile?.stats?.matches || 0} Matches`}
+                        size="small"
+                        color="info"
+                        variant="outlined"
+                      />
+                    </Grid>
+                  </Grid>
+                </Box>
+              </CardContent>
+              {user.role === 'admin' && (
+                <CardActions>
+                  <IconButton onClick={() => handleOpen(player)} color="primary">
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton onClick={() => handleDelete(player._id)} color="error">
+                    <DeleteIcon />
+                  </IconButton>
+                </CardActions>
+              )}
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+
+      {user.role === 'admin' && (
+        <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+          <DialogTitle>{selectedPlayer ? 'Edit Player' : 'Add New Player'}</DialogTitle>
+          <DialogContent>
+            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+              <TextField
+                fullWidth
+                label="Name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                margin="normal"
+                required
+              />
+              <TextField
+                fullWidth
+                label="Email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                margin="normal"
+                required
+              />
+              <TextField
+                fullWidth
+                label="Phone"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                margin="normal"
+              />
+              <TextField
+                fullWidth
+                select
+                label="Team"
+                value={formData.team}
+                onChange={(e) => setFormData({ ...formData, team: e.target.value })}
+                margin="normal"
+                SelectProps={{
+                  native: true,
+                }}
+              >
+                <option value="">Select Team</option>
+                {teams.map((team) => (
+                  <option key={team._id} value={team._id}>
+                    {team.name}
+                  </option>
+                ))}
+              </TextField>
+              <TextField
+                fullWidth
+                label="Age"
+                type="number"
+                value={formData.profile.age}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  profile: { ...formData.profile, age: e.target.value }
+                })}
+                margin="normal"
+              />
+              <TextField
+                fullWidth
+                label="Batting Style"
+                value={formData.profile.battingStyle}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  profile: { ...formData.profile, battingStyle: e.target.value }
+                })}
+                margin="normal"
+              />
+              <TextField
+                fullWidth
+                label="Bowling Style"
+                value={formData.profile.bowlingStyle}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  profile: { ...formData.profile, bowlingStyle: e.target.value }
+                })}
+                margin="normal"
+              />
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClose}>Cancel</Button>
+            <Button onClick={handleSubmit} variant="contained" color="primary">
+              {selectedPlayer ? 'Update' : 'Add'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
+    </Container>
   );
 };
 

@@ -9,6 +9,7 @@ const teamRoutes = require('./routes/teamRoutes');
 const playerRoutes = require('./routes/playerRoutes');
 const matchRoutes = require('./routes/matchRoutes');
 const scoreRoutes = require('./routes/scoreRoutes');
+const trainerRoutes = require('./routes/trainerRoutes');
 
 const app = express();
 
@@ -42,6 +43,7 @@ app.use('/api/teams', teamRoutes);
 app.use('/api/players', playerRoutes);
 app.use('/api/matches', matchRoutes);
 app.use('/api/scores', scoreRoutes);
+app.use('/api/trainers', trainerRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

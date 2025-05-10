@@ -41,10 +41,10 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
-  profile: {
-    photoUrl: String,
-    bio: String,
-    stats: {
+profile: {
+photoUrl: String,
+bio: String,
+stats: {
       runs: {
         type: Number,
         default: 0

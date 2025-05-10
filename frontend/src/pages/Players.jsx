@@ -17,7 +17,8 @@ import {
   Avatar,
   Chip,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  MenuItem
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, SportsCricket as CricketIcon } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
@@ -30,19 +31,17 @@ const Players = () => {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
-    phone: '',
+    age: '',
+    role: '',
     team: '',
-    role: 'player',
-    profile: {
-      age: '',
-      battingStyle: '',
-      bowlingStyle: '',
-      stats: {
-        runs: 0,
-        wickets: 0,
-        matches: 0
-      }
+    battingStyle: '',
+    bowlingStyle: '',
+    stats: {
+      matches: 0,
+      runs: 0,
+      wickets: 0,
+      catches: 0,
+      stumpings: 0
     }
   });
   const { user } = useAuth();
@@ -77,38 +76,34 @@ const Players = () => {
       setSelectedPlayer(player);
       setFormData({
         name: player.name,
-        email: player.email,
-        phone: player.phone,
-        team: player.team?._id || '',
+        age: player.age,
         role: player.role,
-        profile: {
-          age: player.profile?.age || '',
-          battingStyle: player.profile?.battingStyle || '',
-          bowlingStyle: player.profile?.bowlingStyle || '',
-          stats: {
-            runs: player.profile?.stats?.runs || 0,
-            wickets: player.profile?.stats?.wickets || 0,
-            matches: player.profile?.stats?.matches || 0
-          }
+        team: player.team?._id || '',
+        battingStyle: player.battingStyle || '',
+        bowlingStyle: player.bowlingStyle || '',
+        stats: {
+          matches: player.stats?.matches || 0,
+          runs: player.stats?.runs || 0,
+          wickets: player.stats?.wickets || 0,
+          catches: player.stats?.catches || 0,
+          stumpings: player.stats?.stumpings || 0
         }
       });
     } else {
       setSelectedPlayer(null);
       setFormData({
         name: '',
-        email: '',
-        phone: '',
+        age: '',
+        role: '',
         team: '',
-        role: 'player',
-        profile: {
-          age: '',
-          battingStyle: '',
-          bowlingStyle: '',
-          stats: {
-            runs: 0,
-            wickets: 0,
-            matches: 0
-          }
+        battingStyle: '',
+        bowlingStyle: '',
+        stats: {
+          matches: 0,
+          runs: 0,
+          wickets: 0,
+          catches: 0,
+          stumpings: 0
         }
       });
     }
@@ -200,13 +195,13 @@ const Players = () => {
 
                 <Box sx={{ mt: 2 }}>
                   <Typography variant="body2" color="text.secondary" gutterBottom>
-                    Age: {player.profile?.age || '-'}
+                    Age: {player.age || '-'}
                   </Typography>
                   <Typography variant="body2" color="text.secondary" gutterBottom>
-                    Batting Style: {player.profile?.battingStyle || '-'}
+                    Batting Style: {player.battingStyle || '-'}
                   </Typography>
                   <Typography variant="body2" color="text.secondary" gutterBottom>
-                    Bowling Style: {player.profile?.bowlingStyle || '-'}
+                    Bowling Style: {player.bowlingStyle || '-'}
                   </Typography>
                 </Box>
 
@@ -217,7 +212,7 @@ const Players = () => {
                   <Grid container spacing={1}>
                     <Grid item xs={4}>
                       <Chip
-                        label={`${player.profile?.stats?.runs || 0} Runs`}
+                        label={`${player.stats?.runs || 0} Runs`}
                         size="small"
                         color="primary"
                         variant="outlined"
@@ -225,7 +220,7 @@ const Players = () => {
                     </Grid>
                     <Grid item xs={4}>
                       <Chip
-                        label={`${player.profile?.stats?.wickets || 0} Wickets`}
+                        label={`${player.stats?.wickets || 0} Wickets`}
                         size="small"
                         color="secondary"
                         variant="outlined"
@@ -233,7 +228,7 @@ const Players = () => {
                     </Grid>
                     <Grid item xs={4}>
                       <Chip
-                        label={`${player.profile?.stats?.matches || 0} Matches`}
+                        label={`${player.stats?.matches || 0} Matches`}
                         size="small"
                         color="info"
                         variant="outlined"
@@ -272,20 +267,28 @@ const Players = () => {
               />
               <TextField
                 fullWidth
-                label="Email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                label="Age"
+                type="number"
+                value={formData.age}
+                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
                 margin="normal"
                 required
               />
               <TextField
                 fullWidth
-                label="Phone"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                select
+                label="Role"
+                value={formData.role}
+                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                 margin="normal"
-              />
+                required
+              >
+                <MenuItem value="">Select Role</MenuItem>
+                <MenuItem value="Batsman">Batsman</MenuItem>
+                <MenuItem value="Bowler">Bowler</MenuItem>
+                <MenuItem value="All-rounder">All-rounder</MenuItem>
+                <MenuItem value="Wicket-keeper">Wicket-keeper</MenuItem>
+              </TextField>
               <TextField
                 fullWidth
                 select
@@ -293,48 +296,42 @@ const Players = () => {
                 value={formData.team}
                 onChange={(e) => setFormData({ ...formData, team: e.target.value })}
                 margin="normal"
-                SelectProps={{
-                  native: true,
-                }}
               >
-                <option value="">Select Team</option>
+                <MenuItem value="">Select Team</MenuItem>
                 {teams.map((team) => (
-                  <option key={team._id} value={team._id}>
+                  <MenuItem key={team._id} value={team._id}>
                     {team.name}
-                  </option>
+                  </MenuItem>
                 ))}
               </TextField>
               <TextField
                 fullWidth
-                label="Age"
-                type="number"
-                value={formData.profile.age}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  profile: { ...formData.profile, age: e.target.value }
-                })}
-                margin="normal"
-              />
-              <TextField
-                fullWidth
+                select
                 label="Batting Style"
-                value={formData.profile.battingStyle}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  profile: { ...formData.profile, battingStyle: e.target.value }
-                })}
+                value={formData.battingStyle}
+                onChange={(e) => setFormData({ ...formData, battingStyle: e.target.value })}
                 margin="normal"
-              />
+              >
+                <MenuItem value="">Select Batting Style</MenuItem>
+                <MenuItem value="Right-handed">Right-handed</MenuItem>
+                <MenuItem value="Left-handed">Left-handed</MenuItem>
+              </TextField>
               <TextField
                 fullWidth
+                select
                 label="Bowling Style"
-                value={formData.profile.bowlingStyle}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  profile: { ...formData.profile, bowlingStyle: e.target.value }
-                })}
+                value={formData.bowlingStyle}
+                onChange={(e) => setFormData({ ...formData, bowlingStyle: e.target.value })}
                 margin="normal"
-              />
+              >
+                <MenuItem value="">Select Bowling Style</MenuItem>
+                <MenuItem value="Right-arm fast">Right-arm fast</MenuItem>
+                <MenuItem value="Right-arm medium">Right-arm medium</MenuItem>
+                <MenuItem value="Right-arm spin">Right-arm spin</MenuItem>
+                <MenuItem value="Left-arm fast">Left-arm fast</MenuItem>
+                <MenuItem value="Left-arm medium">Left-arm medium</MenuItem>
+                <MenuItem value="Left-arm spin">Left-arm spin</MenuItem>
+              </TextField>
             </Box>
           </DialogContent>
           <DialogActions>

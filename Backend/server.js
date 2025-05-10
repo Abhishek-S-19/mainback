@@ -7,11 +7,12 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 // Import routes
-const authRoutes = require('./routes/auth');
-const teamRoutes = require('./routes/teams');
-const matchRoutes = require('./routes/matches');
-const scoreRoutes = require('./routes/scores');
-const trainerRoutes = require('./routes/trainers');
+const authRoutes = require('./routes/authRoutes');
+const teamRoutes = require('./routes/teamRoutes');
+const matchRoutes = require('./routes/matchRoutes');
+const scoreRoutes = require('./routes/scoreRoutes');
+const trainerRoutes = require('./routes/trainerRoutes');
+const playerRoutes = require('./routes/playerRoutes');
 
 const app = express();
 
@@ -38,6 +39,7 @@ app.use('/api/teams', teamRoutes);
 app.use('/api/matches', matchRoutes);
 app.use('/api/scores', scoreRoutes);
 app.use('/api/trainers', trainerRoutes);
+app.use('/api/players', playerRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

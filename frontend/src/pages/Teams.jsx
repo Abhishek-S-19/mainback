@@ -8,13 +8,24 @@ import {
   DialogActions,
   TextField,
   Typography,
+  Grid,
+  Card,
+  CardContent,
+  CardActions,
+  IconButton,
+  Avatar,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
+  Chip,
+  useTheme
 } from '@mui/material';
-import { Add as AddIcon } from '@mui/icons-material';
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, People as PeopleIcon } from '@mui/icons-material';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 import { toast } from 'react-toastify';
 import api from '../utils/api';
-import DataTable from '../components/DataTable';
 
 const validationSchema = yup.object({
   name: yup.string().required('Team name is required'),
@@ -28,9 +39,13 @@ const validationSchema = yup.object({
 
 function Teams() {
   const [teams, setTeams] = useState([]);
+  const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState(null);
+  const [showPlayersDialog, setShowPlayersDialog] = useState(false);
+  const [selectedTeamPlayers, setSelectedTeamPlayers] = useState([]);
+  const theme = useTheme();
 
   const fetchTeams = async () => {
     try {
@@ -43,9 +58,25 @@ function Teams() {
     }
   };
 
+  const fetchPlayers = async () => {
+    try {
+      const response = await api.get('/players');
+      setPlayers(response.data);
+    } catch (error) {
+      toast.error('Failed to fetch players');
+    }
+  };
+
   useEffect(() => {
     fetchTeams();
+    fetchPlayers();
   }, []);
+
+  const handleShowPlayers = (team) => {
+    const teamPlayers = players.filter(player => player.team === team._id);
+    setSelectedTeamPlayers(teamPlayers);
+    setShowPlayersDialog(true);
+  };
 
   const formik = useFormik({
     initialValues: {
@@ -57,7 +88,7 @@ function Teams() {
     onSubmit: async (values) => {
       try {
         if (selectedTeam) {
-          await api.put(`/teams/${selectedTeam.id}`, values);
+          await api.put(`/teams/${selectedTeam._id}`, values);
           toast.success('Team updated successfully');
         } else {
           await api.post('/teams', values);
@@ -87,7 +118,7 @@ function Teams() {
   const handleDelete = async (team) => {
     if (window.confirm('Are you sure you want to delete this team?')) {
       try {
-        await api.delete(`/teams/${team.id}`);
+        await api.delete(`/teams/${team._id}`);
         toast.success('Team deleted successfully');
         fetchTeams();
       } catch (error) {
@@ -95,12 +126,6 @@ function Teams() {
       }
     }
   };
-
-  const columns = [
-    { id: 'name', label: 'Team Name' },
-    { id: 'location', label: 'Location' },
-    { id: 'foundedYear', label: 'Founded Year' },
-  ];
 
   return (
     <Box>
@@ -126,12 +151,57 @@ function Teams() {
         </Button>
       </Box>
 
-      <DataTable
-        columns={columns}
-        data={teams}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
+      <Grid container spacing={3}>
+        {teams.map((team) => (
+          <Grid item xs={12} sm={6} md={4} key={team._id}>
+            <Card>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Avatar
+                    sx={{
+                      bgcolor: theme.palette.primary.main,
+                      width: 56,
+                      height: 56,
+                      mr: 2
+                    }}
+                  >
+                    {team.name.charAt(0).toUpperCase()}
+                  </Avatar>
+                  <Box>
+                    <Typography variant="h6" component="div">
+                      {team.name}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {team.location}
+                    </Typography>
+                  </Box>
+                </Box>
+                <Typography variant="body2" color="text.secondary">
+                  Founded: {team.foundedYear}
+                </Typography>
+                <Box sx={{ mt: 2 }}>
+                  <Chip
+                    icon={<PeopleIcon />}
+                    label={`${players.filter(p => p.team === team._id).length} Players`}
+                    color="primary"
+                    variant="outlined"
+                    onClick={() => handleShowPlayers(team)}
+                    sx={{ cursor: 'pointer' }}
+                  />
+                </Box>
+              </CardContent>
+              <CardActions>
+                <IconButton onClick={() => handleEdit(team)} color="primary">
+                  <EditIcon />
+                </IconButton>
+                <IconButton onClick={() => handleDelete(team)} color="error">
+                  <DeleteIcon />
+                </IconButton>
+              </CardActions>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
 
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>
@@ -182,6 +252,41 @@ function Teams() {
             </Button>
           </DialogActions>
         </form>
+      </Dialog>
+
+      <Dialog 
+        open={showPlayersDialog} 
+        onClose={() => setShowPlayersDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Team Players</DialogTitle>
+        <DialogContent>
+          <List>
+            {selectedTeamPlayers.length > 0 ? (
+              selectedTeamPlayers.map((player) => (
+                <ListItem key={player._id}>
+                  <ListItemAvatar>
+                    <Avatar>
+                      {player.name.charAt(0).toUpperCase()}
+                    </Avatar>
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={player.name}
+                    secondary={`${player.role} - ${player.battingStyle || 'N/A'} ${player.bowlingStyle ? `(${player.bowlingStyle})` : ''}`}
+                  />
+                </ListItem>
+              ))
+            ) : (
+              <ListItem>
+                <ListItemText primary="No players registered in this team" />
+              </ListItem>
+            )}
+          </List>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowPlayersDialog(false)}>Close</Button>
+        </DialogActions>
       </Dialog>
     </Box>
   );

@@ -21,7 +21,8 @@ import {
   Badge,
   Menu,
   MenuItem,
-  Stack
+  Stack,
+  Alert
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -37,6 +38,8 @@ import {
   LocationOn as LocationIcon
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
+import api from '../utils/api';
+import { toast } from 'react-toastify';
 
 const drawerWidth = 280;
 
@@ -51,32 +54,41 @@ const Layout = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
-    if (user?.role === 'user' && location.pathname === '/dashboard') {
+    if (location.pathname === '/dashboard') {
+      if (user?.role === 'user') {
       navigate('/dashboard/user');
+      } else if (user?.role === 'admin' || user?.role === 'player') {
+        navigate('/dashboard');
+      }
+    } else if (location.pathname === '/dashboard/user' && user?.role !== 'user') {
+      navigate('/dashboard');
     }
   }, [user, location.pathname, navigate]);
 
   useEffect(() => {
     fetchUpcomingMatches();
+    // Refresh matches every 5 minutes
+    const interval = setInterval(fetchUpcomingMatches, 5 * 60 * 1000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchUpcomingMatches = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/matches');
-      const data = await response.json();
-      if (response.ok) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        const upcoming = data
-          .filter(match => new Date(match.date) > today)
-          .sort((a, b) => new Date(a.date) - new Date(b.date))
-          .slice(0, 5);
-        
-        setUpcomingMatches(upcoming);
-      }
+      const response = await api.get('/matches');
+      const data = response.data;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const upcoming = data
+        .filter(match => new Date(match.date) > today)
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .slice(0, 5);
+      
+      setUpcomingMatches(upcoming);
     } catch (error) {
       console.error('Error fetching matches:', error);
+      toast.error('Failed to fetch upcoming matches');
+      setUpcomingMatches([]);
     }
   };
 
@@ -177,36 +189,37 @@ const Layout = () => {
       <Divider />
       <List sx={{ flex: 1, px: 2 }}>
         {menuItems.map((item) => {
-          if (user.role === 'admin' || item.roles.includes(user.role)) {
+          if (item.roles.includes(user?.role)) {
             return (
               <ListItem
                 button
                 key={item.text}
                 onClick={() => navigate(item.path)}
-                selected={location.pathname === item.path}
                 sx={{
                   borderRadius: 2,
                   mb: 1,
-                  '&.Mui-selected': {
-                    backgroundColor: `${theme.palette.primary.main}15`,
-                    '&:hover': {
-                      backgroundColor: `${theme.palette.primary.main}25`,
-                    },
-                    '& .MuiListItemIcon-root': {
-                      color: theme.palette.primary.main,
-                    },
-                    '& .MuiListItemText-primary': {
-                      color: theme.palette.primary.main,
-                      fontWeight: 'bold',
-                    },
-                  },
+                  userSelect: 'none',
+                  WebkitUserSelect: 'none',
+                  cursor: 'pointer',
                   '&:hover': {
                     backgroundColor: `${theme.palette.primary.main}10`,
                   },
                 }}
               >
-                <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.text} />
+                <ListItemIcon sx={{ minWidth: 40, color: theme.palette.primary.main }}>
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText 
+                  primary={item.text} 
+                  primaryTypographyProps={{
+                    color: 'text.primary',
+                    fontWeight: 500,
+                    sx: {
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none'
+                    }
+                  }}
+                />
               </ListItem>
             );
           }
@@ -320,7 +333,7 @@ const Layout = () => {
                   >
                     <Box sx={{ width: '100%' }}>
                       <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
-                        {match.team1} vs {match.team2}
+                        {match.team1?.name || match.team1} vs {match.team2?.name || match.team2}
                       </Typography>
                       <Stack direction="row" spacing={2} alignItems="center" sx={{ color: 'text.secondary' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>

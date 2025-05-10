@@ -263,13 +263,25 @@ const Scores = () => {
       />
 
       <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-        <DialogTitle>
+        <DialogTitle sx={{ 
+          bgcolor: 'primary.main', 
+          color: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1
+        }}>
           {selectedScore ? 'Edit Score' : 'Add New Score'}
         </DialogTitle>
-        <DialogContent>
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-            <Grid container spacing={2}>
+        <DialogContent sx={{ mt: 2 }}>
+          <Box component="form" onSubmit={handleSubmit}>
+            <Grid container spacing={3}>
+              {/* Basic Information */}
               <Grid item xs={12}>
+                <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>
+                  Match Information
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
                 <TextField
                   select
                   fullWidth
@@ -277,6 +289,7 @@ const Scores = () => {
                   value={formData.match}
                   onChange={(e) => setFormData({ ...formData, match: e.target.value })}
                   required
+                  sx={{ mb: 2 }}
                 >
                   {matches.map((match) => (
                     <MenuItem key={match._id} value={match._id}>
@@ -285,23 +298,7 @@ const Scores = () => {
                   ))}
                 </TextField>
               </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  select
-                  fullWidth
-                  label="Player"
-                  value={formData.player}
-                  onChange={(e) => setFormData({ ...formData, player: e.target.value })}
-                  required
-                >
-                  {players.map((player) => (
-                    <MenuItem key={player._id} value={player._id}>
-                      {player.name}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} md={6}>
                 <TextField
                   select
                   fullWidth
@@ -309,6 +306,7 @@ const Scores = () => {
                   value={formData.team}
                   onChange={(e) => setFormData({ ...formData, team: e.target.value })}
                   required
+                  sx={{ mb: 2 }}
                 >
                   {teams.map((team) => (
                     <MenuItem key={team._id} value={team._id}>
@@ -317,9 +315,29 @@ const Scores = () => {
                   ))}
                 </TextField>
               </Grid>
-
               <Grid item xs={12}>
-                <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>Batting</Typography>
+                <TextField
+                  select
+                  fullWidth
+                  label="Player"
+                  value={formData.player}
+                  onChange={(e) => setFormData({ ...formData, player: e.target.value })}
+                  required
+                  sx={{ mb: 2 }}
+                >
+                  {players.map((player) => (
+                    <MenuItem key={player._id} value={player._id}>
+                      {player.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+
+              {/* Batting Section */}
+              <Grid item xs={12}>
+                <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>
+                  Batting Statistics
+                </Typography>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
                 <TextField
@@ -331,6 +349,7 @@ const Scores = () => {
                     ...formData,
                     batting: { ...formData.batting, runs: parseInt(e.target.value) || 0 }
                   })}
+                  InputProps={{ inputProps: { min: 0 } }}
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
@@ -343,6 +362,7 @@ const Scores = () => {
                     ...formData,
                     batting: { ...formData.batting, balls: parseInt(e.target.value) || 0 }
                   })}
+                  InputProps={{ inputProps: { min: 0 } }}
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
@@ -355,6 +375,7 @@ const Scores = () => {
                     ...formData,
                     batting: { ...formData.batting, fours: parseInt(e.target.value) || 0 }
                   })}
+                  InputProps={{ inputProps: { min: 0 } }}
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
@@ -367,6 +388,7 @@ const Scores = () => {
                     ...formData,
                     batting: { ...formData.batting, sixes: parseInt(e.target.value) || 0 }
                   })}
+                  InputProps={{ inputProps: { min: 0 } }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -388,8 +410,11 @@ const Scores = () => {
                 </TextField>
               </Grid>
 
+              {/* Bowling Section */}
               <Grid item xs={12}>
-                <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>Bowling</Typography>
+                <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>
+                  Bowling Statistics
+                </Typography>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
                 <TextField
@@ -401,6 +426,7 @@ const Scores = () => {
                     ...formData,
                     bowling: { ...formData.bowling, overs: parseFloat(e.target.value) || 0 }
                   })}
+                  InputProps={{ inputProps: { min: 0, step: 0.1 } }}
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
@@ -413,6 +439,7 @@ const Scores = () => {
                     ...formData,
                     bowling: { ...formData.bowling, maidens: parseInt(e.target.value) || 0 }
                   })}
+                  InputProps={{ inputProps: { min: 0 } }}
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
@@ -425,6 +452,7 @@ const Scores = () => {
                     ...formData,
                     bowling: { ...formData.bowling, runs: parseInt(e.target.value) || 0 }
                   })}
+                  InputProps={{ inputProps: { min: 0 } }}
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
@@ -437,11 +465,15 @@ const Scores = () => {
                     ...formData,
                     bowling: { ...formData.bowling, wickets: parseInt(e.target.value) || 0 }
                   })}
+                  InputProps={{ inputProps: { min: 0 } }}
                 />
               </Grid>
 
+              {/* Fielding Section */}
               <Grid item xs={12}>
-                <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>Fielding</Typography>
+                <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>
+                  Fielding Statistics
+                </Typography>
               </Grid>
               <Grid item xs={12} sm={4}>
                 <TextField
@@ -453,6 +485,7 @@ const Scores = () => {
                     ...formData,
                     fielding: { ...formData.fielding, catches: parseInt(e.target.value) || 0 }
                   })}
+                  InputProps={{ inputProps: { min: 0 } }}
                 />
               </Grid>
               <Grid item xs={12} sm={4}>
@@ -465,6 +498,7 @@ const Scores = () => {
                     ...formData,
                     fielding: { ...formData.fielding, stumpings: parseInt(e.target.value) || 0 }
                   })}
+                  InputProps={{ inputProps: { min: 0 } }}
                 />
               </Grid>
               <Grid item xs={12} sm={4}>
@@ -477,15 +511,35 @@ const Scores = () => {
                     ...formData,
                     fielding: { ...formData.fielding, runOuts: parseInt(e.target.value) || 0 }
                   })}
+                  InputProps={{ inputProps: { min: 0 } }}
                 />
               </Grid>
             </Grid>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained">
-            {selectedScore ? 'Update' : 'Create'}
+        <DialogActions sx={{ p: 2, bgcolor: 'grey.50' }}>
+          <Button 
+            onClick={handleClose}
+            sx={{ 
+              color: 'text.secondary',
+              '&:hover': {
+                bgcolor: 'grey.200'
+              }
+            }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSubmit} 
+            variant="contained"
+            sx={{
+              px: 3,
+              '&:hover': {
+                bgcolor: 'primary.dark'
+              }
+            }}
+          >
+            {selectedScore ? 'Update Score' : 'Add Score'}
           </Button>
         </DialogActions>
       </Dialog>

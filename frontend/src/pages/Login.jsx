@@ -1,33 +1,29 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
   Container,
   Box,
+  Paper,
   Typography,
   TextField,
   Button,
-  Paper,
-  Alert,
+  Link,
   InputAdornment,
   IconButton,
+  Alert,
+  CircularProgress,
   useTheme,
   useMediaQuery
 } from '@mui/material';
 import {
   Visibility,
   VisibilityOff,
-  Email as EmailIcon,
+  Person as PersonIcon,
   Lock as LockIcon
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
-import { toast } from 'react-toastify';
 
 const Login = () => {
-  const navigate = useNavigate();
-  const { login } = useAuth();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  
   const [formData, setFormData] = useState({
     username: '',
     password: ''
@@ -35,6 +31,10 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const handleChange = (e) => {
     setFormData({
@@ -49,17 +49,10 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await login(formData);
-      if (response.user) {
-        toast.success('Login successful!');
+      await login(formData);
         navigate('/dashboard');
-      } else {
-        setError('Invalid response from server');
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      setError(error.response?.data?.message || 'Error logging in');
-      toast.error(error.response?.data?.message || 'Error logging in');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to login. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -69,113 +62,75 @@ const Login = () => {
     <Box
       sx={{
         minHeight: '100vh',
-        width: '100%',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%)',
+        bgcolor: '#f8fafc',
         py: 4
       }}
     >
-      <Container 
-        component="main" 
-        maxWidth="xs"
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}
-      >
+      <Container maxWidth="sm">
         <Paper 
           elevation={3} 
           sx={{ 
-            p: isMobile ? 3 : 4, 
-            width: '100%',
+            p: { xs: 3, sm: 4 },
             borderRadius: 2,
-            background: 'linear-gradient(to bottom right, #ffffff, #f5f5f5)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+            bgcolor: 'white'
           }}
         >
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-            }}
-          >
+          <Box sx={{ textAlign: 'center', mb: 4 }}>
             <Typography 
+              variant="h4"
               component="h1" 
-              variant="h4" 
-              align="center" 
-              gutterBottom
               sx={{ 
-                fontWeight: 'bold',
+                fontWeight: 700,
                 color: theme.palette.primary.main,
-                mb: 3
+                mb: 1
               }}
             >
               Welcome Back
             </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Sign in to your account to continue
+            </Typography>
+          </Box>
             
             {error && (
               <Alert 
                 severity="error" 
-                sx={{ 
-                  mb: 2, 
-                  width: '100%',
-                  borderRadius: 1
-                }}
+              sx={{ mb: 3 }}
+              onClose={() => setError('')}
               >
                 {error}
               </Alert>
             )}
 
-            <Box 
-              component="form" 
-              onSubmit={handleSubmit} 
-              sx={{ 
-                mt: 1,
-                width: '100%'
-              }}
-            >
+          <form onSubmit={handleSubmit}>
               <TextField
-                margin="normal"
-                required
                 fullWidth
-                id="username"
                 label="Username"
                 name="username"
-                autoComplete="username"
-                autoFocus
                 value={formData.username}
                 onChange={handleChange}
+              required
+              margin="normal"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <EmailIcon color="action" />
+                    <PersonIcon color="action" />
                     </InputAdornment>
                   ),
                 }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    '&:hover fieldset': {
-                      borderColor: 'primary.main',
-                    },
-                  },
-                }}
+              sx={{ mb: 2 }}
               />
               <TextField
-                margin="normal"
-                required
                 fullWidth
+              label="Password"
                 name="password"
-                label="Password"
                 type={showPassword ? 'text' : 'password'}
-                id="password"
-                autoComplete="current-password"
                 value={formData.password}
                 onChange={handleChange}
+              required
+              margin="normal"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -185,7 +140,6 @@ const Login = () => {
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton
-                        aria-label="toggle password visibility"
                         onClick={() => setShowPassword(!showPassword)}
                         edge="end"
                       >
@@ -194,57 +148,51 @@ const Login = () => {
                     </InputAdornment>
                   ),
                 }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    '&:hover fieldset': {
-                      borderColor: 'primary.main',
-                    },
-                  },
-                }}
+              sx={{ mb: 3 }}
               />
               <Button
                 type="submit"
                 fullWidth
                 variant="contained"
+              size="large"
                 disabled={loading}
                 sx={{ 
-                  mt: 3, 
-                  mb: 2,
                   py: 1.5,
-                  borderRadius: 2,
+                fontSize: '1.1rem',
+                borderRadius: '8px',
                   textTransform: 'none',
-                  fontSize: '1.1rem',
+                boxShadow: '0 4px 14px rgba(0,0,0,0.2)',
+                '&:hover': {
+                  boxShadow: '0 6px 20px rgba(0,0,0,0.3)',
+                }
+              }}
+            >
+              {loading ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                'Sign In'
+              )}
+            </Button>
+          </form>
+
+          <Box sx={{ mt: 3, textAlign: 'center' }}>
+            <Typography variant="body2" color="text.secondary">
+              Don't have an account?{' '}
+              <Link
+                component={RouterLink}
+                to="/register"
+                sx={{
+                  color: theme.palette.primary.main,
+                  textDecoration: 'none',
+                  fontWeight: 600,
                   '&:hover': {
-                    transform: 'translateY(-2px)',
-                    boxShadow: 3,
+                    textDecoration: 'underline',
                   },
-                  transition: 'all 0.2s ease-in-out'
-                }}
-              >
-                {loading ? 'Signing in...' : 'Sign In'}
-              </Button>
-              <Box 
-                sx={{ 
-                  textAlign: 'center',
-                  mt: 2
-                }}
-              >
-                <Typography variant="body2" color="text.secondary">
-                  Don't have an account?{' '}
-                  <Link 
-                    to="/register" 
-                    style={{ 
-                      textDecoration: 'none',
-                      color: theme.palette.primary.main,
-                      fontWeight: 'bold'
                     }}
                   >
-                    Sign Up
+                Create Account
                   </Link>
                 </Typography>
-              </Box>
-            </Box>
           </Box>
         </Paper>
       </Container>

@@ -32,6 +32,7 @@ const Register = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    username: '',
     password: '',
     confirmPassword: '',
     phone: '',
@@ -141,6 +142,23 @@ const Register = () => {
                   }}
                 />
               </Grid>
+              <Grid item xs={12} sm={6}>
+  <TextField
+    fullWidth
+    label="Username"
+    name="username"
+    value={formData.username}
+    onChange={handleChange}
+    required
+    InputProps={{
+      startAdornment: (
+        <InputAdornment position="start">
+          <PersonIcon color="action" />
+        </InputAdornment>
+      ),
+    }}
+  />
+</Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth

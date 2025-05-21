@@ -166,7 +166,7 @@ const Home = () => {
                 }}
               >
                 <img 
-                  src="/cricket-illustration.svg" 
+                  src="/assets/home.jpg" 
                   alt="Cricket Illustration"
                   style={{ 
                     width: '100%',

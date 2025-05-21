@@ -60,13 +60,12 @@ const Login = () => {
 
   return (
     <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        bgcolor: '#f8fafc',
-        py: 4
-      }}
+    sx={{
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+    }}
     >
       <Container maxWidth="sm">
         <Paper 

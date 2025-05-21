@@ -14,7 +14,16 @@ exports.createTeam = async (req, res) => {
 // Get all teams
 exports.getAllTeams = async (req, res) => {
     try {
-        const teams = await Team.find().populate('players captain');
+        const teams = await Team.find()
+            .populate({
+                path: 'players',
+                select: 'name role battingStyle bowlingStyle team',
+                populate: {
+                    path: 'team',
+                    select: 'name'
+                }
+            })
+            .populate('captain');
         res.status(200).json(teams);
     } catch (error) {
         res.status(500).json({ message: error.message });

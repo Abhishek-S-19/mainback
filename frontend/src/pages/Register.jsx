@@ -32,7 +32,7 @@ const Register = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    username: '',``
+    username: '',
     password: '',
     confirmPassword: '',
     phone: '',
@@ -80,12 +80,13 @@ const Register = () => {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        bgcolor: '#f8fafc',
-        py: 4
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)'
       }}
+
+
     >
       <Container maxWidth="md">
         <Paper

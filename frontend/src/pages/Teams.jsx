@@ -73,7 +73,7 @@ function Teams() {
   }, []);
 
   const handleShowPlayers = (team) => {
-    const teamPlayers = players.filter(player => player.team === team._id);
+    const teamPlayers = players.filter(player => player.team && player.team._id === team._id);
     setSelectedTeamPlayers(teamPlayers);
     setShowPlayersDialog(true);
   };
@@ -182,7 +182,7 @@ function Teams() {
                 <Box sx={{ mt: 2 }}>
                   <Chip
                     icon={<PeopleIcon />}
-                    label={`${players.filter(p => p.team === team._id).length} Players`}
+                    label={`${team.players ? team.players.length : 0} Players`}
                     color="primary"
                     variant="outlined"
                     onClick={() => handleShowPlayers(team)}
